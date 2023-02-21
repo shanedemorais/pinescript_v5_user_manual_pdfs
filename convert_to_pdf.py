@@ -47,7 +47,7 @@ def create_pdf_name(chapter_num, anchor):
                                               "").replace("#", "_") + ".pdf"
     chapter = f'{chapter_num:05d}_'
 
-    pdf_name = "./pdf_files/" + chapter + anchor
+    pdf_name = "./chapters/" + chapter + anchor
 
     return pdf_name
 
