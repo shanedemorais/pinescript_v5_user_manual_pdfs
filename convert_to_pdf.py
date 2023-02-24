@@ -43,8 +43,7 @@ class OneLineExceptionFormatter(logging.Formatter):
 
 
 def create_pdf_name(chapter_num, anchor):
-    anchor = anchor.replace("/", "_").replace(".html",
-                                              "").replace("#", "_") + ".pdf"
+    anchor = anchor.replace("/", "_").replace(".html", "") + ".pdf"
     chapter = f'{chapter_num:05d}_'
 
     pdf_name = "./chapters/" + chapter + anchor
@@ -88,18 +87,20 @@ def download_chapter(chapters):
 
     chapter_num = 1
     for anchor in chapters:
-        pdf_name = create_pdf_name(chapter_num, anchor['href'])
+        anchor = anchor['href']
+        if not "#" in anchor:
+            pdf_name = create_pdf_name(chapter_num, anchor)
 
-        # Keep skipping until we match starting page.
-        #
-        if not download_html and Constant.START_AT_PAGE in pdf_name:
-            download_html = True
+            # Keep skipping until we match starting page.
+            #
+            if not download_html and Constant.START_AT_PAGE in pdf_name:
+                download_html = True
 
-        if download_html:
-            logging.info(f"Downloading {pdf_name}")
-            save_html_as_pdf(anchor['href'], pdf_name)
+            if download_html:
+                logging.info(f"Downloading {pdf_name}")
+                save_html_as_pdf(anchor, pdf_name)
 
-        chapter_num += 1
+            chapter_num += 1
 
 
 def main(start_url):
