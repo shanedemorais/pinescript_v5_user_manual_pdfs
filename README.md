@@ -1,4 +1,4 @@
-# pinescript_v5_manual
+# pine script v5 user manual
 
 Each online section is converted to a pdf page.
 
