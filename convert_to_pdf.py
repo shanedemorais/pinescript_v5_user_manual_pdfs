@@ -81,7 +81,7 @@ def save_html_as_pdf(anchor, pdf_name):
     url = Constant.DOMAIN_NAME + anchor
 
     try:
-        #pdfkit.from_url(url, pdf_name)
+        pdfkit.from_url(url, pdf_name)
         logging.info(f"- Downloaded {pdf_name}")
 
     except Exception as ex:
