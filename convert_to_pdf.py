@@ -20,12 +20,13 @@ import lxml
 from bs4 import BeautifulSoup
 import os
 import sys
+import re
 
 
 class Constant:
     PINESCRIPT_MANUAL_URL = "https://www.tradingview.com/pine-script-docs/en/v5/index.html"
     DOMAIN_NAME = "https://www.tradingview.com/pine-script-docs/en/v5/"
-    START_AT_PAGE = ""
+    START_AT_CHAPTER = ""
     HEADERS = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36 QIHU 360SE'}
 
@@ -50,6 +51,16 @@ def create_pdf_name(chapter_num, anchor):
 
     return pdf_name
 
+def prune_subchapters(chapters):
+    '''We're not interested in any href which contains a # as it's still 
+       the same page as the main page
+    '''
+    ch = chapters.copy()
+    for anchor in chapters:
+        if "#" in anchor['href']:
+            ch.remove(anchor)
+
+    return ch
 
 def find_chapters(start_url):
     f = requests.get(start_url, headers=Constant.HEADERS)
@@ -59,6 +70,8 @@ def find_chapters(start_url):
         'class': 'toctree-wrapper'
     }).find_all('a')
 
+    chapters = prune_subchapters(chapters)
+    
     logging.info(f"Chapters to download: {len(chapters)}")
 
     return chapters
@@ -68,7 +81,7 @@ def save_html_as_pdf(anchor, pdf_name):
     url = Constant.DOMAIN_NAME + anchor
 
     try:
-        pdfkit.from_url(url, pdf_name)
+        #pdfkit.from_url(url, pdf_name)
         logging.info(f"- Downloaded {pdf_name}")
 
     except Exception as ex:
@@ -83,24 +96,24 @@ def save_html_as_pdf(anchor, pdf_name):
 def download_chapter(chapters):
     # do we have to start from a particular page?
     #
-    download_html = False if len(Constant.START_AT_PAGE) > 0 else True
+    download_html = False if len(Constant.START_AT_CHAPTER) > 0 else True
 
     chapter_num = 1
     for anchor in chapters:
         anchor = anchor['href']
-        if not "#" in anchor:
-            pdf_name = create_pdf_name(chapter_num, anchor)
 
-            # Keep skipping until we match starting page.
-            #
-            if not download_html and Constant.START_AT_PAGE in pdf_name:
-                download_html = True
+        pdf_name = create_pdf_name(chapter_num, anchor)
 
-            if download_html:
-                logging.info(f"Downloading {pdf_name}")
-                save_html_as_pdf(anchor, pdf_name)
+        # Keep skipping until we match starting chapter.
+        #
+        if not download_html and Constant.START_AT_CHAPTER in pdf_name:
+            download_html = True
 
-            chapter_num += 1
+        if download_html:
+            logging.info(f"Downloading {pdf_name}")
+            save_html_as_pdf(anchor, pdf_name)
+
+        chapter_num += 1
 
 
 def main(start_url):
